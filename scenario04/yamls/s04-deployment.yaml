@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s04-deployment
+  namespace: scenario04
+  labels:
+    app: s04-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: s04-app
+  template:
+    metadata:
+      labels:
+        app: s04-app
+    spec:
+      containers:
+      - name: s04-container
+        image: wordpress:latest
+        ports:
+        - containerPort: 80
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "echo $(hostname) > /var/www/html/test.php"]

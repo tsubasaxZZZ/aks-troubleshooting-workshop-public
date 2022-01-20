@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s02-deployment
+  namespace: scenario02
+  labels:
+    app: s02-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: s02-app
+  template:
+    metadata:
+      labels:
+        app: s02-app
+    spec:
+      containers:
+      - name: s02-container
+        image: demoacr01sufdc1861b5996e0a90.azurecr.io/sample/s02image:latest
+        ports:
+        - containerPort: 80

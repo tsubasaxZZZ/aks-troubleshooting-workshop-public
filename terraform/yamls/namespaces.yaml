@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scenario01
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scenario02
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scenario03
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scenario04
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scenario05

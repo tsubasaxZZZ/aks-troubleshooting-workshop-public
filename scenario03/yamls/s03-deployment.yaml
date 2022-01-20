@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s03-deployment
+  namespace: scenario03
+  labels:
+    app: s03-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: s03-app
+  template:
+    metadata:
+      labels:
+        app: s03-app
+    spec:
+      containers:
+      - name: s03-container
+        image: wordpress:latest
+        resources:  # 制限の設定
+          requests:  # 最小リソース
+            memory: "1000Mi"
+            cpu: "700m"
+          limits:  # 最大リソース
+            memory: "1000Mi"
+            cpu: "700m"
+        ports:
+        - containerPort: 80
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "echo $(hostname) > /var/www/html/test.php"]

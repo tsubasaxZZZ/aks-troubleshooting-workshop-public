@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: sampleapp
+  name: sampleapp
+  namespace: scenario05
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      run: sampleapp
+  template:
+      metadata:
+        labels:
+            run: sampleapp
+      spec:
+          containers:
+            - image: tsubasaxzzz/aks-troubleshooting:v0.4
+              name: sampleapp
+              env:
+              - name: db_user
+                value: "4dm1n157r470r"
+              - name: db_password
+                value: "4-v3ry-53cr37-p455w0rd"
+              - name: db_server
+                value: "example.database.windows.net" #ここを変更します
+              - name: db_database
+                value: "demo_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: sampleapp
+  name: sampleapp
+  namespace: scenario05
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    run: sampleapp
+  type: LoadBalancer

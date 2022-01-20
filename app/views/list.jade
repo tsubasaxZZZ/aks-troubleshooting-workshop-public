@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1 住所検索アプリケーション
+  p 検索した住所を100件表示します。
+  form(name="search-user", method="post", action="/list")
+      div.input
+          span.label 住所: 
+          input(type="text", name="address", value=address)
+          input(type="submit", value="検索")

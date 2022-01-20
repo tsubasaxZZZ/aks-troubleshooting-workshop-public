@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s01-deployment
+  namespace: scenario01
+  labels:
+    app: s01-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: s01-app
+  template:
+    metadata:
+      labels:
+        app: s01-app
+    spec:
+      containers:
+      - name: container
+        image: wordpress:latast
+        ports:
+        - containerPort: 80
