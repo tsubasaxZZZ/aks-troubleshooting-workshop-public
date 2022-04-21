@@ -18,8 +18,9 @@
 3. 以下のコマンドで、GitHub から構築用ファイルをダウンロードします。
    ```bash
    git clone https://github.com/tsubasaxZZZ/aks-troubleshooting-workshop-public
+   cd aks-troubleshooting-workshop-public/terraform
    ```
-4. `aks-troubleshooting-workshop/terraform/userslist` 構築するユーザー名リストを更新します。
+4. `userslist` に構築するユーザー名リストを更新します。
    - ユーザーごとに改行して記載してください。
    - 作成するリソースグループ名は `ユーザー名-rg` になります。
    - 例：
@@ -31,7 +32,6 @@
 5. 以下のコマンドを実行して、環境デプロイ開始します。
    - １ ユーザーあたり 10 分前後かかります。
    ```bash
-   cd aks-troubleshooting-workshop/terraform/
    bash main.sh
    ```
 6. エラーなしで最後まで実行できたことを確認します。
@@ -48,7 +48,7 @@
 確認として、任意のユーザーのリソースにて、以下の確認を実施してください。
 
 - 各リソースが展開されていること
-- コンテナレジストリに `sample/demoimage` が展開されていること
+- コンテナ レジストリに `sample/demoimage` と `sample/s02image` が展開されていること
 - SQL Database にダミーデータが展開されていること
 - 踏み台用の VM にログインできること
 - 踏み台用の VM に 以下のツール/ファイルがインストールされていること

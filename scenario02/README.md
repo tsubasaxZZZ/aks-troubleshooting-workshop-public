@@ -22,7 +22,7 @@ Kubernetes のワークロードを初めて展開する際に、いきなりう
   ```
 2. 以下のコマンドを実行し、yamls ファイルから Kubernetes のリソースを作成
   ```bash
-  kubectl apply -f ./aks-troubleshooting-workshop-public/scenario02/yamls/s02-deployment.yaml
+  kubectl apply -f ./scenario02/yamls/s02-deployment.yaml
   ```
 
 ## 現象の確認
@@ -51,39 +51,39 @@ Kubernetes のワークロードを初めて展開する際に、いきなりう
     <summary>コンテナのログを確認する</summary>
 
 + Pod の状態を出力して、状態の遷移を確認します。
+  + `Complete` 状態は、コンテナが実行しているプロセスが正常終了したことを意味します。
+  + 常時起動のコンテナのプロセスは終了しないプロセスにする必要があります。
 + Pod の詳細情報を確認してみます。
-+ Pod が起動していた様子があった場合、Pod のログを確認してみます。
-+ 仮説の問題点箇所を探します。
+  + コンテナの再起動が数回発生しています。
++ Pod の状態とログを確認します。
+  ```bash
+  # Pod の詳細情報確認
+  # kubectl describe pods <pod名> -n scenario01
+  # 例)
+  kubectl describe pods sampleapp-fd4d45b84-2nxb5 -n scenario02
 
-```bash
-# Pod の詳細情報確認
-# kubectl describe pods <pod名> -n scenario01
-# 例)
-kubectl describe pods sampleapp-fd4d45b84-2nxb5 -n scenario02
+  # Pod の Log の確認
+  # kubectl logs <Pod 名> -f ※ -f を付けることでリアルタイムにログを見ることができます。
+  # 例)
+  kubectl logs sampleapp-fd4d45b84-2nxb5 -f -n scenario02
+  ```
++ コンテナのプロセスの起動コマンドは `/app/dumb-init npm start` です。
+  + Dockerfile を確認して、イメージはどういう風にプロセスを起動しているかを確認します。
+  + コンテナ イメージの `Dockerfile` は `./scenario02/Dockerfiles/Dockerfile` です。
+    + Dockerfile の `CMD` でコマンドを実行します。
 
-# Pod の Log の確認
-# kubectl logs <Pod 名> -f ※ -f を付けることでリアルタイムにログを見ることができます。
-# 例)
-kubectl logs sampleapp-fd4d45b84-2nxb5 -f -n scenario02
-```
 </details>
 
 <details>
     <summary>Dockerfile の確認</summary>
 
-- `Dockerfile` を開き、コンテナの起動プロセスを確認します。
+- `./scenario02/Dockerfiles/Dockerfile` を開き、コンテナの起動プロセスを確認します。
 
 </details>
 
+## トラブルシューティング
 
-## 環境のクリーンアップ
-
-```bash
-# 指定の namespace のリソースをクリーンアップ
-kubectl delete all --all -n scenario02
-```
-
-## 回答
+※ここから下は自分で答えを見つけてから確認しましょう。
 
 <details>
     <summary>ここを展開してください</summary>
@@ -106,27 +106,44 @@ kubectl delete all --all -n scenario02
     Normal   Pulled     12s                kubelet            Successfully pulled image "demoacr01sufdc1861b5996e0a90.azurecr.io/sample/demoimage:latest" in 156.354651ms
     Warning  BackOff    11s (x5 over 52s)  kubelet            Back-off restarting failed container
   ```
-- トラブル箇所：`app/Dockerfile_s02` ファイルの起動 プロセス
+- トラブル箇所：`./scenario02/Dockerfiles/Dockerfile` ファイルの起動 プロセス
   - ENTRYPOINT/CMD：コマンドでメイン プロセスを起動します。このプロセスが終了するにつれ、コンテナも終了してしまいますので、プロセスが終了しないようにする必要があります。
   - プロセス完了：本シナリオでは、プロセスを実行完了するものにして、例を挙げさせていただいたのですが、実際にエラーなどの原因で終了する可能性もあります。
 - 修復方法：
-  1. `app/Dockerfile_s02` で起動するプロセスを終
-  2. イメージを再デプロイし、yaml ファイルのイメージ指定を修正して、再デプロイします。
-    - 本シナリオでは、事前にビルドしたイメージを作成しているので、イメージをそちらを使っていただく修復できます。イメージ：`sample/demoimage:latest`
-    - また、以下のステップで、手動で修復することも可能
-      ```bash
-      # 1. ACR にログインする
-      az acr login --name <acrName>
-      
-      # 2. 修正済みの Dockerfile で、イメージをビルドする
-      az acr build --image sample/s02image:fixed --registry "<ACR名>.azurecr.io" --file ./aks-troubleshooting-workshop-public/app/Dockerfile ./aks-troubleshooting-workshop-public/app
-      
-      # 3. yaml ファイルのタグを修正する
-
-      # 4. 再度デプロイ
-      kubectl apply -f ./aks-troubleshooting-workshop-public/scenario02/yamls/s02-deployment.yaml
+  1. `./scenario02/yamls/s02-deployment.yaml` ファイルを修正
+    - プロセス起動する設定 `spec.template.spec.containers[].command` を追加
+      ```yaml
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: s02-deployment
+        namespace: scenario02
+        labels:
+          app: s02-app
+      spec:
+        replicas: 2
+        selector:
+          matchLabels:
+            app: s02-app
+        template:
+          metadata:
+            labels:
+              app: s02-app
+          spec:
+            containers:
+            - name: s02-container
+              image: demoacr01sufdc1861b5996e0a90.azurecr.io/sample/s02image:latest
+              command: [ "/app/dumb-init", "npm", "start" ]  # この行を追加
+              ports:
+              - containerPort: 80
       ```
+  2. 以下のコマンドで deployment を再デプロイします。
+    ```bash
+    kubectl apply -f ./scenario02/yamls/s02-deployment.yaml
+    ```
   3. Pod が `Running` 状態になっていることを確認します。
+
+※ Dockerfile にプロセス起動のコマンドを追加し、イメージをリビルドする方法でも修復が可能です。
 
 ### コンテナのプロセスについての解説
 
@@ -141,3 +158,10 @@ Kubernetes の安全停止のしくみは、シグナルで実現しているの
 ※ Kubernetes の安全停止：シグナルを受け付けてから強制停止まで、デフォルト30秒の余裕があります。
 
 </details>
+
+## 環境のクリーンアップ
+
+```bash
+# 指定の namespace のリソースをクリーンアップ
+kubectl delete all --all -n scenario02
+```

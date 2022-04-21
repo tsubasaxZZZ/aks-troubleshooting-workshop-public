@@ -17,6 +17,7 @@ spec:
     spec:
       containers:
       - name: s02-container
-        image: demoacr01sufdc1861b5996e0a90.azurecr.io/sample/s02image:latest
+        image: demoacr01suf8aa89502b6fd3912.azurecr.io/sample/s02image:latest
+        command: [ "/app/dumb-init", "npm", "start" ]
         ports:
         - containerPort: 80

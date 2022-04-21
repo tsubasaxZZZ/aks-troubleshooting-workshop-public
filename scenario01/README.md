@@ -17,7 +17,7 @@ Kubernetes のワークロードを初めて展開する際に、いきなりう
 
 1. 以下のコマンドを実行し、yamls ファイルから ワークロードを作成します。
   ```bash
-  kubectl apply -f ./aks-troubleshooting-workshop-public/scenario01/yamls/s01-deployment.yaml
+  kubectl apply -f ./scenario01/yamls/s01-deployment.yaml
   ```
 
 ※ 本シナリオは `DockerHub` の `Wordpress` 公式イメージを利用しています。
@@ -60,22 +60,16 @@ kubectl describe pods sampleapp-fd4d45b84-2nxb5 -n scenario01
 - `s01-deployment.yaml` を開き、原因となる箇所を調べてみましょう。
 - 変更したマニュフェストファイルを修正して、環境に適用します。
   ```bash
-  kubectl apply -f ./aks-troubleshooting-workshop-public/scenario01/yamls/s01-deployment.yaml
+  kubectl apply -f ./scenario01/yamls/s01-deployment.yaml
   ```
 - 修復できたかの確認をします。
   - Pod が `Running` 状態になることを確認します。
 
 </details>
 
+## トラブルシューティング
 
-## 環境のクリーンアップ
-
-```bash
-# 指定の namespace のリソースをクリーンアップ
-kubectl delete all --all -n scenario01
-```
-
-## 回答
+※ここから下は自分で答えを見つけてから確認しましょう。
 
 <details>
     <summary>ここを展開してください</summary>
@@ -100,7 +94,7 @@ kubectl delete all --all -n scenario01
   1. `s01-deployment.yaml` の L20 `image: wordpress:latast` → `image: wordpress:latest` に修正します。
   2. もう一度デプロイを実施します。
     ```bash
-    kubectl apply -f ./aks-troubleshooting-workshop-public/scenario01/yamls/s01-deployment.yaml
+    kubectl apply -f ./scenario01/yamls/s01-deployment.yaml
     ```
   3. Pod が正常起動できたことを確認します。
 
@@ -108,16 +102,26 @@ kubectl delete all --all -n scenario01
 
 イメージのタグはイメージの重要な識別しで、イメージをダウンロードする際に必ず必要とする情報になります。</br>
 
-タグを間違って指定した場合、イメージが見つからなくなり、ダウンロースが失敗します。</br>
+タグを間違って指定した場合、イメージが見つからなくなり、ダウンロードが失敗します。</br>
 指定なしの場合、デフォルトは `latest` になります。</br>
 
 このシナリオでは `latest` タグを使用しましたが、運用環境では基本 `latest` タグのみの指定は推奨しません。</br>
 
-原因としては、`latest` のみを指定した場合、Kubernetes にはイメージキャッシュの機能があって、イメージ更新したとしても、キャッシュにある古いイメージと同じものとして認識されてしまいます。</br>
+理由としては、`latest` を使った場合、そのイメージのバージョンが分からなくなるためです。</br>
+アプリケーションの変更や設定の変更をするときに latest を指定した場合、同じ latest にもかかわらず、新しいイメージと古いイメージを使っている環境が混在してしまいます。</br>
 
-よって、結果的にデプロイされたワークロードが古いイメージを使ってしまうトラブルが発生しやすいためです。</br>
+タグの命名規則の標準はないですが、[ベスト プラクティスのドキュメント](https://docs.microsoft.com/ja-jp/azure/container-registry/container-registry-image-tag-version)はありますので、ご参考ください。
+また、1つのイメージに複数のタグを付ける運用 (最新のイメージに `1.2` と `latest` の両方を付けるなど) もよくみられるパターンです。</br>
+Docker Hub で nginx や Ubuntu などの代表的なイメージのタグを確認することも、タグ付けの際の参考になります。</br>
+nginx の例：</br>
+![](../images/s01-nginx_tags.png)
 
-タグの命名規則は標準がなく、ユーザーのポリシーによりますが、（Docker Hub）の有名なものを参考していただいたほうがよいかと存じます。</br>
-（例：複数タグを付けるのも結構一般的なパターン）
 
 </details>
+
+## 環境のクリーンアップ
+
+```bash
+# 指定の namespace のリソースをクリーンアップ
+kubectl delete all --all -n scenario01
+```

@@ -35,7 +35,7 @@ module "vnet" {
 
   # allowed_ip                = var.myipaddress
 
-  disable_private_link_endpoint_network_policies = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 # Log Analytics Workspace 作成

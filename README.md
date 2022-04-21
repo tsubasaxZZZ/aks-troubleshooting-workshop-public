@@ -54,15 +54,15 @@
 
 ### SQL Database
 
-- ユーザー名：azureuser
-- パスワード：PaSsW0rd0000
+- ユーザー名：4dm1n157r470r
+- パスワード：4-v3ry-53cr37-p455w0rd
 
 [terraform を参照](/terraform/modules/SQLServer/main.tf)
 
 ### VM (Ubuntu)
 
-- ユーザー名：4dm1n157r470r
-- パスワード：4-v3ry-53cr37-p455w0rd
+- ユーザー名：azureuser
+- パスワード：PaSsW0rd0000
 
 [terraform を参照](/terraform/modules/VirtualMachine/variables.tf)
 

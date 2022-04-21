@@ -2,8 +2,8 @@
 
 ## 演習の概要と目的
 
-Kubernetes のワークロードを展開する際に、ワークロードとサービスとも正常に動いているように見えますが、サービスへのアクセスができないトラブルのケースもよくあります。
-この際に、クライアントからサービスへの通信ができないか、サービスからワークロードの通信ができないかの可能性が大きいです。
+Kubernetes のワークロードを展開する際に、ワークロードも、サービスも正常に動いているように見えていても、アプリケーションへのアクセスができないトラブルはよくあります。
+このような場合、クライアントからサービスへの通信、もしくは、サービスからワークロードへの通信のどちらかで問題があると考えて切り分けします。
 このシナリオでは、通信がうまくいかない際に、まずどういう風にトラブルシューティングしていくかを見ていきましょう。
 
 この演習では、ワークロードとサービスが正常に動作している状態で、サービスへのアクセス不可のトラブルに対してトラブルシューティングを行います。
@@ -22,11 +22,13 @@ Kubernetes のワークロードを展開する際に、ワークロードとサ
 
 1. 以下のコマンドを実行し、yamls ファイルから Kubernetes のリソースを作成します。
   ```bash
-  kubectl apply -f ./aks-troubleshooting-workshop-public/scenario04/yamls/s04-lb-service.yaml -f ./aks-troubleshooting-workshop-public/scenario04/yamls/s04-deployment.yaml
+  kubectl apply -f ./scenario04/yamls/
   ```
-2. 「demoaks01」を選択し、「サービスとイングレス」を選択し、「s04-nlb-service」サービスの外部 IP を確認して、メモします。
-  - kubectl get services -n scenario04
-  ![](../images/s04-lb-ip.png)
+2. 以下のコマンドを実行し、サービスの外部 IP を確認して、メモします。
+  ```bash
+  kubectl get services -n scenario04
+  ```
+  ![](../images/s0x-lb-ip.png)
 
 ## 現象の説明
 
@@ -71,28 +73,22 @@ kubectl describe service s04-nlb-service -n scenario04
 - `s04-lb-service.yaml` を開き、原因に関連する箇所を調べてみましょう。
 - 問題の仮説を立て、修復する処理を行います。
   ```bash
-  kubectl apply -f ./aks-troubleshooting-workshop-public/scenario04/yamls/s04-lb-service.yaml -f ./aks-troubleshooting-workshop-public/scenario04/yamls/s04-deployment.yaml
+  kubectl apply -f ./scenario04/yamls/
   ```
-- 修復できたかの確認をします。
+- 修復されているか確認します。
   - `http://<サービスのIP>:8080/` サイトにアクセスします。
 </details>
 
+## トラブルシューティング
 
-## 環境のクリーンアップ
-
-```bash
-# 指定の namespace のリソースをクリーンアップ
-kubectl delete all --all -n scenario04
-```
-
-## 回答
+※ここから下は自分で答えを見つけてから確認しましょう。
 
 <details>
     <summary>ここを展開してください</summary>
 
 ### トラブルについて
 
-- トラブル原因：サービスのターゲット Port がコンテナの受診 Port と違いました。
+- トラブル原因：サービスのターゲット Port がコンテナの受信 Port と違いました。
 - `kubectl describe` コマンド結果例 (抜粋)：
   ```bash
   Name:                     s04-nlb-service
@@ -123,10 +119,9 @@ kubectl delete all --all -n scenario04
   1. `s04-lb-service.yaml` の `targetPort: 8080` → `targetPort: 80` に修正します。
   2. サービスの設定を更新します。
     ```bash
-    kubectl apply -f ./aks-troubleshooting-workshop-public/scenario04/yamls/s04-lb-service.yaml
+    kubectl apply -f ./scenario04/yamls/s04-lb-service.yaml
     ```
   3. サービスへの通信が正常にできたことを確認します。
-
 
 ### サービスの動作について
 
@@ -139,17 +134,19 @@ kubectl delete all --all -n scenario04
   - サービスのラベルと通信先のワークロードのラベルを一致する必要がある
 
 
-ロードバランサと AKS の ノードの動作について、以下で少し説明をさせていただきます。
+ロードバランサと AKS の ノードの動作について以下に説明します。
 - AKS に Service が作成された場合、`kube-proxy` (System workload) によって ノードの `iptables` が構成される
-- ロードバランサの振り分け先ノードに対象 Pod が存在する場合、以下のアドレス変換が行われて送信する
-  - パケットの送信元: ブリッジ インタフェースの IP アドレス(SNAT)
-  - パケットの送信先: Pod の IP アドレス
-  - ※ そのまま ブリッジ インタフェース 経由で Pod へ送信する
-- ロードバランサの振り分け先ノードに対象 Pod が存在しない場合、以下のアドレス変換が行われて送信する
-  - パケットの送信元: 通常のノードのインタフェース(eth0)の IP アドレス(SNAT)
-  - パケットの送信先: Pod の IP アドレス
-  - ※ ノードの NIC を送信元に、UDR でほかのノードに送信する
-- Pod 間の通信は、UDR によって実現される
+- Pod 間の通信はネットワークのプラグインによって、挙動が変わります。プラグインは以下の2種類あります。
+  - kubenet：ノード内に仮想ブリッジが作成されます。
+    - ノード内 Pod 通信： L2 レベルで通信します。
+    - ノードを跨ぐ Pod 通信：ソース IP がノードのIP に変換されて、UDR でほかのノードへ送信します。
+  - Azure CNI：Pod が サブネットのIPを持つようになり、Pod 間では L3 レベルで通信します。
 
 </details>
 
+## 環境のクリーンアップ
+
+```bash
+# 指定の namespace のリソースをクリーンアップ
+kubectl delete all --all -n scenario04
+```

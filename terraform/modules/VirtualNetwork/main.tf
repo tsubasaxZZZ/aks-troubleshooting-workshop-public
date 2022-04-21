@@ -18,8 +18,8 @@ resource "azurerm_subnet" "example_subnet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.example_vnet.name
   address_prefixes     = each.value
-  enforce_private_link_service_network_policies  = var.disable_private_link_service_network_policies
-  enforce_private_link_endpoint_network_policies = var.disable_private_link_endpoint_network_policies  # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet
+  enforce_private_link_service_network_policies  = var.enforce_private_link_service_network_policies
+  enforce_private_link_endpoint_network_policies = var.enforce_private_link_endpoint_network_policies  # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet
 }
 
 # サブネットごとに、NSG を作成

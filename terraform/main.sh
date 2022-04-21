@@ -51,7 +51,7 @@ for u in `cat $usersList`; do
 
     # build image for scenario02
     count=0
-    until (az acr build --image sample/s02image --registry "${acrName}.azurecr.io" --file ../../../scenario02/Dockerfiles/Dockerfile_s02 ../../../app) || [ $count -eq 3 ] ; do
+    until (az acr build --image sample/s02image --registry "${acrName}.azurecr.io" --file ../../../scenario02/Dockerfiles/Dockerfile ../../../app) || [ $count -eq 3 ] ; do
         sleep 5
         count=$((++count))
     done

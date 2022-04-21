@@ -25,13 +25,13 @@ variable "subnet_info" {
   description = ""
 }
 
-variable "disable_private_link_service_network_policies" {
+variable "enforce_private_link_service_network_policies" {
   type        = bool
   default     = false
   description = ""
 }
 
-variable "disable_private_link_endpoint_network_policies" {
+variable "enforce_private_link_endpoint_network_policies" {
   type        = bool
   default     = false
   description = ""
