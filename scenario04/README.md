@@ -55,7 +55,7 @@ Kubernetes のワークロードを展開する際に、ワークロードも、
 <details>
     <summary>Pod の詳細情報とサービスの詳細情報を確認する</summary>
 
-- Pod の受け付けポートは 80 です。
+- Service の受付ポートは 8080 で、Pod の受け付けポートは 80 です。
 - Pod の詳細情報とサービスの詳細情報を確認してみます。
 ```bash
 # Pod デプロイ情報確認コマンド
@@ -91,6 +91,9 @@ kubectl describe service s04-nlb-service -n scenario04
 - トラブル原因：サービスのターゲット Port がコンテナの受信 Port と違いました。
 - `kubectl describe` コマンド結果例 (抜粋)：
   ```bash
+  NAME              TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)          AGE
+  s04-nlb-service   LoadBalancer   10.0.216.18   20.210.37.244   8080:30400/TCP   129m
+  azureuser@demovm01:~/aks-troubleshooting-workshop-public$ kubectl describe service s04-nlb-service -n scenario04
   Name:                     s04-nlb-service
   Namespace:                scenario04
   Labels:                   app=s04-app
@@ -99,20 +102,20 @@ kubectl describe service s04-nlb-service -n scenario04
   Type:                     LoadBalancer
   IP Family Policy:         SingleStack
   IP Families:              IPv4
-  IP:                       10.0.220.55
-  IPs:                      10.0.220.55
-  LoadBalancer Ingress:     20.46.184.118
-  Port:                     <unset>  80/TCP
+  IP:                       10.0.216.18
+  IPs:                      10.0.216.18
+  LoadBalancer Ingress:     20.210.37.244
+  Port:                     <unset>  8080/TCP
   TargetPort:               8080/TCP
-  NodePort:                 <unset>  32715/TCP
-  Endpoints:                10.10.100.12:8080,10.10.100.17:8080
+  NodePort:                 <unset>  30400/TCP
+  Endpoints:                10.10.100.12:8080,10.10.100.19:8080
   Session Affinity:         None
   External Traffic Policy:  Cluster
   Events:
-    Type    Reason                Age   From                Message
-    ----    ------                ----  ----                -------
-    Normal  EnsuringLoadBalancer  13m   service-controller  Ensuring load balancer
-    Normal  EnsuredLoadBalancer   13m   service-controller  Ensured load balancer
+    Type    Reason                Age                From                Message
+    ----    ------                ----               ----                -------
+    Normal  EnsuringLoadBalancer  76s (x5 over 66m)  service-controller  Ensuring load balancer
+    Normal  EnsuredLoadBalancer   75s (x3 over 66m)  service-controller  Ensured load balancer
   ```
 - トラブル箇所：`s04-lb-service.yaml` の `targetPort:` 部分の指定
 - 修復方法 (複数解決策)：ノートのスケールアウトまたはスケールアップ
@@ -134,13 +137,17 @@ kubectl describe service s04-nlb-service -n scenario04
   - サービスのラベルと通信先のワークロードのラベルを一致する必要がある
 
 
-ロードバランサと AKS の ノードの動作について以下に説明します。
-- AKS に Service が作成された場合、`kube-proxy` (System workload) によって ノードの `iptables` が構成される
+ロードバランサと AKS のノードの動作について以下に説明します。
+- `kube-proxy`：各ノード上で仮想ネットワークを処理します。
+  - プロキシはネットワーク トラフィックをルーティングして、サービスとポッドの IP アドレスを管理します。
 - Pod 間の通信はネットワークのプラグインによって、挙動が変わります。プラグインは以下の2種類あります。
   - kubenet：ノード内に仮想ブリッジが作成されます。
     - ノード内 Pod 通信： L2 レベルで通信します。
     - ノードを跨ぐ Pod 通信：ソース IP がノードのIP に変換されて、UDR でほかのノードへ送信します。
   - Azure CNI：Pod が サブネットのIPを持つようになり、Pod 間では L3 レベルで通信します。
+
+イメージ：
+![](https://docs.microsoft.com/ja-jp/azure/aks/media/concepts-clusters-workloads/aks-node-resource-interactions.png)
 
 </details>
 

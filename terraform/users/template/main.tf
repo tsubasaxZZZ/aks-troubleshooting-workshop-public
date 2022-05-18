@@ -227,7 +227,7 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_a_record" "example" {
-  name                = "${module.sqlserver.return_sql_info.name}"
+  name                = module.sqlserver.return_sql_info.name
   zone_name           = azurerm_private_dns_zone.example.name
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300

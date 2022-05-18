@@ -21,10 +21,10 @@ spec:
         resources:  # 制限の設定
           requests:  # 最小リソース
             memory: "1000Mi"
-            cpu: "700m"
+            cpu: "500m"
           limits:  # 最大リソース
             memory: "1000Mi"
-            cpu: "700m"
+            cpu: "500m"
         ports:
         - containerPort: 80
         lifecycle:
